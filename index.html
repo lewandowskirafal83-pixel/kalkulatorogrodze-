@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8"><script>/* <![CDATA[ */ ringDataLayer = {"context":{"variant":{"accelerator":"ZG93bmxvYWQucG9jenRhLm9uZXQucGw6Oms4cw=="},"id":{"website":"9481b0b7-7c3d-463b-8f3c-9de5c8289e21"}}}; /* ]]> */</script><script>/* <![CDATA[ */ accConf = {"events":{"endpointPaths":["/a8f4d8cd95e164917035b64b867a45dd"]}}; /* ]]> */</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Ogrodzeń — Narzędzie Warsztatowe</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Inter & JetBrains Mono dla wymiarów technicznych -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        steel: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                        safety: {
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Niestandardowe suwaki wygodne na telefonie */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 8px;
+            background: #cbd5e1;
+            border-radius: 999px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #ea580c;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            margin-top: -8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+        }
+        input[type="range"]::-moz-range-track {
+            height: 8px;
+            background: #cbd5e1;
+            border-radius: 999px;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #ea580c;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+        }
+        /* Usuwanie strzałek z pól numerycznych dla czystszego wyglądu */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-steel-100 text-steel-900 font-sans min-h-screen flex flex-col selection:bg-safety-500 selection:text-white">
+
+    <!-- Nagłówek aplikacji -->
+    <header class="bg-steel-900 text-white border-b-4 border-safety-600 sticky top-0 z-30 shadow-md">
+        <div class="max-w-4xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-safety-600 p-2 rounded-lg text-white shadow-inner">
+                    <!-- Ikona ogrodzenia SVG -->
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 3v18M12 3v18M20 3v18M2 8h20M2 16h20"/>
+                    </svg>
+                </div>
+                <div>
+                   <center> <h0 class="text-lg sm:text-xl font-extrabold tracking-tight leading-none">www.rafmet.pl</h0></center><h1 class="text-lg sm:text-xl font-extrabold tracking-tight leading-none">KALKULATOR OGRODZEŃ</h1>
+                    <p class="text-xs text-steel-400 mt-0.5">Warsztatowe obliczenia wymiarów i materiałów</p>
+                </div>
+            </div>
+            <button onclick="resetAllDefaults()" title="Przywróć domyślne wartości" class="text-xs font-semibold bg-steel-800 hover:bg-steel-700 text-steel-200 px-3 py-2 rounded-lg border border-steel-700 transition active:scale-95">
+                Resetuj
+            </button>
+        </div>
+
+        <!-- Nawigacja zakładek -->
+        <nav class="bg-steel-800 border-t border-steel-700">
+            <div class="max-w-4xl mx-auto px-2 sm:px-4 grid grid-cols-2 sm:grid-cols-4 gap-1 py-1.5" role="tablist">
+                <button id="tab-btn-spacing" onclick="switchTab('spacing')" role="tab" aria-selected="true"
+                    class="tab-btn py-2.5 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 bg-safety-600 text-white shadow">
+                    <span>1. Odstępy</span>
+                </button>
+                <button id="tab-btn-auto" onclick="switchTab('auto')" role="tab" aria-selected="false"
+                    class="tab-btn py-2.5 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 text-steel-300 hover:bg-steel-700 hover:text-white">
+                    <span>2. Auto-rozstaw</span>
+                </button>
+                <button id="tab-btn-spans" onclick="switchTab('spans')" role="tab" aria-selected="false"
+                    class="tab-btn py-2.5 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 text-steel-300 hover:bg-steel-700 hover:text-white">
+                    <span>3. Przęsła i słupki</span>
+                </button>
+                <button id="tab-btn-summary" onclick="switchTab('summary')" role="tab" aria-selected="false"
+                    class="tab-btn py-2.5 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 text-steel-300 hover:bg-steel-700 hover:text-white">
+                    <span>4. Zestawienie</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Główna zawartość -->
+    <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-6 space-y-6">
+
+        <!-- ========================================================= -->
+        <!-- ZAKŁADKA 1: ODSTĘPY POPRZECZEK                            -->
+        <!-- ========================================================= -->
+        <section id="tab-spacing" class="space-y-5">
+            
+            <!-- Karta parametrów wejściowych -->
+            <div class="bg-white rounded-2xl shadow-sm border border-steel-200 p-4 sm:p-6 space-y-5">
+                <div class="flex items-center justify-between border-b border-steel-100 pb-3">
+                    <h2 class="text-base sm:text-lg font-bold text-steel-900">Parametry przęsła / odcinka</h2>
+                    <span class="text-xs font-mono font-semibold bg-steel-100 text-steel-600 px-2.5 py-1 rounded-md">Jednostka: cm</span>
+                </div>
+
+                <!-- Długość i szerokość poprzeczki -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="sp-length" class="block text-sm font-semibold text-steel-700 mb-1.5">
+                            Długość / wysokość odcinka (cm)
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="sp-length" value="200" step="0.1" min="1"
+                                oninput="calculateSpacing()"
+                                class="w-full h-12 px-4 pr-12 text-lg font-mono font-bold bg-steel-50 border-2 border-steel-300 rounded-xl focus:border-safety-600 focus:bg-white focus:outline-none transition">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-steel-400">cm</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="sp-bar-width" class="block text-sm font-semibold text-steel-700 mb-1.5">
+                            Szerokość pojedynczej poprzeczki (cm)
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="sp-bar-width" value="4" step="0.1" min="0.1"
+                                oninput="calculateSpacing()"
+                                class="w-full h-12 px-4 pr-12 text-lg font-mono font-bold bg-steel-50 border-2 border-steel-300 rounded-xl focus:border-safety-600 focus:bg-white focus:outline-none transition">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-steel-400">cm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Liczba poprzeczek: przyciski - / +, pole liczbowe oraz suwak -->
+                <div class="bg-steel-50 p-4 rounded-xl border border-steel-200 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <label for="sp-count-input" class="text-sm font-bold text-steel-800">
+                            Liczba poprzeczek / sztachet:
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="adjustBarCount(-1)" aria-label="Zmniejsz liczbę poprzeczek"
+                                class="w-12 h-12 rounded-xl bg-white border-2 border-steel-300 hover:border-steel-400 active:bg-steel-200 text-2xl font-bold text-steel-800 flex items-center justify-center shadow-sm select-none">
+                                −
+                            </button>
+                            <input type="number" id="sp-count-input" value="3" min="1" max="100" step="1"
+                                oninput="syncBarCountFromInput()"
+                                class="w-20 h-12 text-center text-xl font-mono font-extrabold bg-white border-2 border-safety-600 rounded-xl focus:outline-none">
+                            <button type="button" onclick="adjustBarCount(1)" aria-label="Zwiększ liczbę poprzeczek"
+                                class="w-12 h-12 rounded-xl bg-safety-600 hover:bg-safety-700 active:scale-95 text-2xl font-bold text-white flex items-center justify-center shadow-sm select-none">
+                                +
+                            </button>
+                        </div>
+                    </div>
+                    <div class="pt-1">
+                        <input type="range" id="sp-count-slider" min="1" max="50" value="3"
+                            oninput="syncBarCountFromSlider()"
+                            class="w-full">
+                        <div class="flex justify-between text-[11px] font-mono text-steel-500 mt-1">
+                            <span>1 szt.</span>
+                            <span>10</span>
+                            <span>20</span>
+                            <span>30</span>
+                            <span>40</span>
+                            <span>50 szt.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sposób liczenia odstępów -->
+                <div>
+                    <span class="block text-sm font-semibold text-steel-700 mb-2">Sposób rozmieszczenia:</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="sp-mode" value="even-all" checked onchange="calculateSpacing()" class="peer sr-only">
+                            <div class="p-3.5 rounded-xl border-2 border-steel-200 bg-steel-50 peer-checked:border-safety-600 peer-checked:bg-orange-50/60 transition">
+                                <div class="font-bold text-sm text-steel-900">Równe przerwy na całej długości</div>
+                                <div class="text-xs text-steel-600 mt-0.5">Przerwy od krawędzi i między poprzeczkami (<strong>n + 1</strong> przerw)</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="sp-mode" value="edge-flush" onchange="calculateSpacing()" class="peer sr-only">
+                            <div class="p-3.5 rounded-xl border-2 border-steel-200 bg-steel-50 peer-checked:border-safety-600 peer-checked:bg-orange-50/60 transition">
+                                <div class="font-bold text-sm text-steel-900">Skrajne na krawędziach</div>
+                                <div class="text-xs text-steel-600 mt-0.5">Pierwsza i ostatnia przy samych krawędziach (<strong>n − 1</strong> przerw)</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Karta wyniku na żywo -->
+            <div id="sp-result-card" class="bg-steel-900 text-white rounded-2xl shadow-md p-5 sm:p-6 border-l-8 border-safety-600">
+                <!-- Ostrzeżenie o błędzie wymiarowym -->
+                <div id="sp-warning" class="hidden bg-red-600/20 border-2 border-red-500 text-red-100 p-4 rounded-xl mb-4">
+                    <div class="font-bold text-base flex items-center gap-2">
+                        <span>⚠️ Poprzeczki nie mieszczą się na odcinku!</span>
+                    </div>
+                    <p id="sp-warning-text" class="text-sm mt-1 text-red-200"></p>
+                </div>
+
+                <!-- Główny wynik -->
+                <div id="sp-valid-results">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-steel-700">
+                        <div>
+                            <span class="text-xs uppercase tracking-wider font-bold text-steel-400">Odstęp (prześwit między poprzeczkami)</span>
+                            <div id="res-gap-cm" class="text-4xl sm:text-5xl font-mono font-extrabold text-safety-500 mt-1">
+                                47,00 cm
+                            </div>
+                            <div id="res-gap-mm" class="text-lg font-mono font-semibold text-steel-300 mt-1">
+                                470,0 mm
+                            </div>
+                        </div>
+                        <div class="bg-steel-800 px-4 py-3 rounded-xl border border-steel-700 text-left sm:text-right">
+                            <div class="text-xs text-steel-400">Rozstaw od osi do osi</div>
+                            <div id="res-center-to-center" class="text-xl font-mono font-bold text-white mt-0.5">51,00 cm</div>
+                        </div>
+                    </div>
+
+                    <!-- Szczegóły pomocnicze -->
+                    <div class="grid grid-cols-3 gap-3 pt-4 text-center sm:text-left">
+                        <div class="bg-steel-800/70 p-3 rounded-xl">
+                            <div class="text-[11px] sm:text-xs text-steel-400">Liczba przerw</div>
+                            <div id="res-gaps-count" class="text-base sm:text-lg font-mono font-bold text-white mt-0.5">4 szt.</div>
+                        </div>
+                        <div class="bg-steel-800/70 p-3 rounded-xl">
+                            <div class="text-[11px] sm:text-xs text-steel-400">Suma poprzeczek</div>
+                            <div id="res-bars-total-width" class="text-base sm:text-lg font-mono font-bold text-white mt-0.5">12,0 cm</div>
+                        </div>
+                        <div class="bg-steel-800/70 p-3 rounded-xl">
+                            <div class="text-[11px] sm:text-xs text-steel-400">Wolne światło</div>
+                            <div id="res-free-space" class="text-base sm:text-lg font-mono font-bold text-white mt-0.5">188,0 cm</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Karta schematu technicznego SVG -->
+            <div class="bg-white rounded-2xl shadow-sm border border-steel-200 p-4 sm:p-6 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-base font-bold text-steel-900">Schemat rozmieszczenia</h3>
+                        <p class="text-xs text-steel-500">Podgląd proporcji na żywo</p>
+                    </div>
+                    <!-- Przełącznik orientacji podglądu -->
+                    <div class="inline-flex rounded-xl bg-steel-100 p-1 border border-steel-200">
+                        <button type="button" id="orient-btn-horizontal" onclick="setOrientation('horizontal')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-steel-900 shadow-sm">
+                            Poziomo (sztachety)
+                        </button>
+                        <button type="button" id="orient-btn-vertical" onclick="setOrientation('vertical')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-steel-600 hover:text-steel-900">
+                            Pionowo (żaluzja)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kontener na SVG -->
+                <div class="w-full bg-steel-50 border border-steel-200 rounded-xl p-2 sm:p-4 overflow-hidden flex items-center justify-center">
+                    <svg id="spacing-svg" class="w-full h-auto max-h-[340px]" viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg"></svg>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- ZAKŁADKA 2 (NOWA): AUTO-ROZSTAW DO MAKSYMALNEGO ZAKRESU   -->
+        <!-- ========================================================= -->
+        <section id="tab-auto" class="hidden space-y-5">
+
+            <!-- Karta parametrów wejściowych -->
+            <div class="bg-white rounded-2xl shadow-sm border border-steel-200 p-4 sm:p-6 space-y-5">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-steel-100 pb-3">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-steel-900">Automatyczny dobór ilości i rozstawu</h2>
+                        <p class="text-xs text-steel-500">Wpisz wymiar przęsła i limit prześwitu (np. 9–10 cm) — reszta policzy się sama</p>
+                    </div>
+                    <span class="text-xs font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-md">Auto-obliczenia</span>
+                </div>
+
+                <!-- Wymiary przęsła, elementu i zakres prześwitu -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label for="au-length" class="block text-sm font-semibold text-steel-700 mb-1.5">
+                            Przęsło od słupka do słupka
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="au-length" value="200" step="0.1" min="1"
+                                oninput="calculateAutoSpacing(true)"
+                                class="w-full h-12 px-3.5 pr-11 text-lg font-mono font-bold bg-steel-50 border-2 border-steel-300 rounded-xl focus:border-safety-600 focus:bg-white focus:outline-none transition">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-steel-400">cm</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="au-bar-width" class="block text-sm font-semibold text-steel-700 mb-1.5">
+                            Szerokość poprzeczki / sztachety
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="au-bar-width" value="4" step="0.1" min="0.1"
+                                oninput="calculateAutoSpacing(true)"
+                                class="w-full h-12 px-3.5 pr-11 text-lg font-mono font-bold bg-steel-50 border-2 border-steel-300 rounded-xl focus:border-safety-600 focus:bg-white focus:outline-none transition">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-steel-400">cm</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="au-min-gap" class="block text-sm font-semibold text-steel-700 mb-1.5">
+                            Prześwit OD (min. zakres)
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="au-min-gap" value="9.0" step="0.1" min="0"
+                                oninput="calculateAutoSpacing(true)"
+                                class="w-full h-12 px-3.5 pr-11 text-lg font-mono font-bold bg-steel-50 border-2 border-steel-300 rounded-xl focus:border-safety-600 focus:bg-white focus:outline-none transition">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-steel-400">cm</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="au-max-gap" class="block text-sm font-semibold text-steel-700 mb-1.5">
+                            Prześwit DO (maks. limit)
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="au-max-gap" value="10.0" step="0.1" min="0.1"
+                                oninput="calculateAutoSpacing(true)"
+                                class="w-full h-12 px-3.5 pr-11 text-lg font-mono font-bold bg-orange-50/50 border-2 border-safety-600 rounded-xl focus:bg-white focus:outline-none transition">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-safety-600">cm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Szybkie presety limitu prześwitu -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-semibold text-steel-500">Szybki zakres:</span>
+                    <button type="button" onclick="setAutoGapPreset(8.5, 10.0)" class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-steel-100 hover:bg-steel-200 text-steel-700 border border-steel-200 transition">8,5 – 10 cm</button>
+                    <button type="button" onclick="setAutoGapPreset(9.0, 10.0)" class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-steel-100 hover:bg-steel-200 text-steel-700 border border-steel-200 transition">9,0 – 10 cm (standard)</button>
+                    <button type="button" onclick="setAutoGapPreset(4.0, 5.0)" class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-steel-100 hover:bg-steel-200 text-steel-700 border border-steel-200 transition">4,0 – 5 cm (gęsto)</button>
+                    <button type="button" onclick="setAutoGapPreset(1.5, 2.5)" class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-steel-100 hover:bg-steel-200 text-steel-700 border border-steel-200 transition">1,5 – 2,5 cm (żaluzja)</button>
+                </div>
+
+                <!-- Tryb rozmieszczenia przy słupkach -->
+                <div>
+                    <span class="block text-sm font-semibold text-steel-700 mb-2">Sposób rozmieszczenia względem słupków:</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="au-mode" value="even-all" checked onchange="calculateAutoSpacing(true)" class="peer sr-only">
+                            <div class="p-3.5 rounded-xl border-2 border-steel-200 bg-steel-50 peer-checked:border-safety-600 peer-checked:bg-orange-50/60 transition">
+                                <div class="font-bold text-sm text-steel-900">Równe przerwy wszędzie (w tym przy słupkach)</div>
+                                <div class="text-xs text-steel-600 mt-0.5">Przerwy przy lewym/prawym słupku identyczne jak między sztukami (<strong>n + 1</strong> przerw)</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="au-mode" value="edge-flush" onchange="calculateAutoSpacing(true)" class="peer sr-only">
+                            <div class="p-3.5 rounded-xl border-2 border-steel-200 bg-steel-50 peer-checked:border-safety-600 peer-checked:bg-orange-50/60 transition">
+                                <div class="font-bold text-sm text-steel-900">Skrajne przy samych słupkach</div>
+                                <div class="text-xs text-steel-600 mt-0.5">Pierwsza i ostatnia sztuka stykają się ze słupkami (<strong>n − 1</strong> przerw)</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Karta wyniku głównego -->
+            <div id="au-result-card" class="bg-steel-900 text-white rounded-2xl shadow-md p-5 sm:p-6 border-l-8 border-emerald-500">
+                <div id="au-warning" class="hidden bg-red-600/20 border-2 border-red-500 text-red-100 p-4 rounded-xl mb-4">
+                    <div class="font-bold text-base">⚠️ Nieprawidłowe dane wejściowe</div>
+                    <p id="au-warning-text" class="text-sm mt-1 text-red-200"></p>
+                </div>
+
+                <div id="au-valid-results" class="space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-steel-700">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-xs uppercase tracking-wider font-bold text-steel-400">Wyliczona liczba elementów w przęśle</span>
+                                <span id="au-status-badge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                    ✓ Mieści się w zakresie 9,0 – 10,0 cm
+                                </span>
+                            </div>
+                            <div id="au-res-count" class="text-4xl sm:text-5xl font-mono font-extrabold text-white mt-1.5">
+                                14 szt.
+                            </div>
+                            <div id="au-res-count-sub" class="text-xs text-steel-400 mt-1">
+                                Rozłożone idealnie równo po całej szerokości przęsła
+                            </div>
+                        </div>
+
+                        <div class="bg-steel-800 px-5 py-4 rounded-xl border border-steel-700 text-left sm:text-right">
+                            <div class="text-xs text-steel-400">Dokładny prześwit (odstęp)</div>
+                            <div id="au-res-gap-cm" class="text-3xl sm:text-4xl font-mono font-extrabold text-safety-500 mt-0.5">9,60 cm</div>
+                            <div id="au-res-gap-mm" class="text-sm font-mono font-semibold text-steel-300 mt-0.5">96,0 mm</div>
+                        </div>
+                    </div>
+
+                    <!-- Szczegóły pomocnicze -->
+                    <div class="grid grid-cols-3 gap-3 text-center sm:text-left">
+                        <div class="bg-steel-800/70 p-3 rounded-xl">
+                            <div class="text-[11px] sm:text-xs text-steel-400">Rozstaw osiowy</div>
+                            <div id="au-res-ctc" class="text-base sm:text-lg font-mono font-bold text-white mt-0.5">13,60 cm</div>
+                        </div>
+                        <div class="bg-steel-800/70 p-3 rounded-xl">
+                            <div class="text-[11px] sm:text-xs text-steel-400">Liczba przerw</div>
+                            <div id="au-res-gaps-count" class="text-base sm:text-lg font-mono font-bold text-white mt-0.5">15 szt.</div>
+                        </div>
+                        <div class="bg-steel-800/70 p-3 rounded-xl">
+                            <div class="text-[11px] sm:text-xs text-steel-400">Suma materiału</div>
+                            <div id="au-res-material-width" class="text-base sm:text-lg font-mono font-bold text-white mt-0.5">56,0 cm</div>
+                        </div>
+                    </div>
+
+                    <!-- Przycisk przeniesienia do zestawienia -->
+                    <div class="pt-1 flex flex-wrap items-center justify-between gap-3 border-t border-steel-800">
+                        <span class="text-xs text-steel-400">Chcesz uwzględnić tę liczbę sztuk w materiałach?</span>
+                        <button type="button" id="au-transfer-btn" onclick="applyAutoToSummary()"
+                            class="px-4 py-2.5 rounded-xl bg-safety-600 hover:bg-safety-700 text-white text-xs sm:text-sm font-bold transition active:scale-95 shadow">
+                            Przenieś do zestawienia →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela porównawcza wariantów wokół wyniku optymalnego -->
+            <div class="bg-white rounded-2xl shadow-sm border border-steel-200 p-4 sm:p-6 space-y-3">
+                <div>
+                    <h3 class="text-base font-bold text-steel-900">Porównanie wariantów (kliknij wiersz, aby podejrzeć)</h3>
+                    <p class="text-xs text-steel-500">Szybki podgląd sąsiednich ilości sztuk wokół wyniku optymalnego</p>
+                </div>
+
+                <div class="overflow-x-auto border border-steel-200 rounded-xl">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-steel-100 text-steel-600 text-xs uppercase border-b border-steel-200">
+                                <th class="py-2.5 px-3 font-bold">Ilość</th>
+                                <th class="py-2.5 px-3 font-bold">Odstęp (cm)</th>
+                                <th class="py-2.5 px-3 font-bold">Odstęp (mm)</th>
+                                <th class="py-2.5 px-3 font-bold">Status zakresu</th>
+                            </tr>
+                        </thead>
+                        <tbody id="au-variants-tbody" class="divide-y divide-steel-100">
+                            <!-- Wypełniane dynamicznie -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Schemat techniczny SVG dla Auto-rozstawu -->
+            <div class="bg-white rounded-2xl shadow-sm border border-steel-200 p-4 sm:p-6 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-base font-bold text-steel-900">Schemat przęsła od słupka do słupka</h3>
+                        <p class="text-xs text-steel-500">Podgląd proporcji dla wybranego wariantu</p>
+                    </div>
+                    <div class="inline-flex rounded-xl bg-steel-100 p-1 border border-steel-200">
+                        <button type="button" id="au-orient-btn-horizontal" onclick="setAutoOrientation('horizontal')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-steel-900 shadow-sm">
+                            Pionowo (sztachety)
+                        </button>
+                        <button type="button" id="au-orient-btn-vertical" onclick="setAutoOrientation('vertical')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold transition text-steel-600 hover:text-steel-900">
+                            Poziomo (żaluzja)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="w-full bg-steel-50 border border-steel-200 rounded-xl p-2 sm:p-4 overflow-hidden flex items-center justify-center">
+                    <svg id="auto-spacing-svg" class="w-full h-auto max-h-[340px]" viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg"></svg>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- ZAKŁADKA 3: PRZĘSŁA I SŁUPKI                              -->
+        <!-- ========================================================= -->
+        <section id="tab-spans" class="hidden space-y-5">
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-steel-200 p-4 sm:p-6 space-y-5">
+                <div class="flex items-center justify-between border-b border-steel-100 pb-3">
+                    <h2 class="text-base sm:text-lg font-bold text-steel-900">Rozplanowanie linii ogrodzenia</h2>
+                    <span class="text-xs font-mono font-semibold bg-steel-100 text-steel-600 px-2.5 py-1 rounded-md">Słupki + Przęsła</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label for="fn-total-length" class="block text-sm font-semibold text-steel-700 mb-1.5">
+                            Długość całkowita (m)
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="fn-total-length" value="25" step="0.1" min="0.5"
+                                oninput="calculateSpans()"
+                                class="w-full h-12 px-4 pr-10 text-lg font-mono font-bold bg-steel-50 border-2 border-steel-300 rounded-xl focus:border-safety-600 focus:bg-white focus:outline-none">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-steel-400">m</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="fn-post-width" class="block text-sm font-semibold text-steel-700 mb-1.5">
+                            Szerokość słupka (cm)
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="fn-post-width" value="8" step="0.5" min="1"
+                                oninput="calculateSpans()"
+                                class="w-full h-12 px-4 pr-12 text-lg font-mono font-bold bg-steel-50 border-2 border-steel-300 rounded-xl focus:border-safety-600 focus:bg-white focus:outline-none">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-steel-400">cm</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="fn-target-span" class="block text-sm font-semibold text-steel-700 mb-1.5">
+                            Docelowe przęsło (cm)
+                        </label>
+                        <div class="relative">
+                            <input type="number" id="fn-target-span" value="250" step="1" min="20"
+                                oninput="calculateSpans()"
+                                class="w-full h-12 px-4 pr-12 text-lg font-mono font-bold bg-steel-50 border-2 border-steel-300 rounded-xl focus:border-safety-600 focus:bg-white focus:outline-none">
+                            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-steel-400">cm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tryb podziału -->
+                <div>
+                    <span class="block text-sm font-semibold text-steel-700 mb-2">Sposób podziału na przęsła:</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="fn-mode" value="equal" checked onchange="calculateSpans()" class="peer sr-only">
+                            <div class="p-3.5 rounded-xl border-2 border-steel-200 bg-steel-50 peer-checked:border-safety-600 peer-checked:bg-orange-50/60 transition">
+                                <div class="font-bold text-sm text-steel-900">Równy podział wszystkich przęseł</div>
+                                <div class="text-xs text-steel-600 mt-0.5">Wszystkie przęsła mają identyczną szerokość (nie przekraczając docelowej)</div>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="fn-mode" value="fixed-plus-cut" onchange="calculateSpans()" class="peer sr-only">
+                            <div class="p-3.5 rounded-xl border-2 border-steel-200 bg-steel-50 peer-checked:border-safety-600 peer-checked:bg-orange-50/60 transition">
+                                <div class="font-bold text-sm text-steel-900">Stałe przęsła + ostatnie krótsze</div>
+                                <div class="text-xs text-steel-600 mt-0.5">Gotowe przęsła o stałym wymiarze + jedno skrócone na końcu (docinka)</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wyniki przęseł i słupków -->
+            <div class="bg-steel-900 text-white rounded-2xl shadow-md p-5 sm:p-6 border-l-8 border-safety-600 space-y-5">
+                <div id="fn-warning" class="hidden bg-red-600/20 border-2 border-red-500 text-red-100 p-4 rounded-xl">
+                    <div class="font-bold text-sm">⚠️ Podana długość ogrodzenia jest za mała względem szerokości słupków.</div>
+                </div>
+
+                <div id="fn-results-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                    <div class="bg-steel-800 p-4 rounded-xl border border-steel-700">
+                        <div class="text-xs text-steel-400">Liczba słupków</div>
+                        <div id="res-posts-count" class="text-2xl sm:text-3xl font-mono font-extrabold text-white mt-1">11 szt.</div>
+                        <div class="text-[11px] text-steel-400 mt-1">z początkowym i końcowym</div>
+                    </div>
+
+                    <div class="bg-steel-800 p-4 rounded-xl border border-steel-700">
+                        <div class="text-xs text-steel-400">Liczba przęseł</div>
+                        <div id="res-spans-count" class="text-2xl sm:text-3xl font-mono font-extrabold text-safety-500 mt-1">10 szt.</div>
+                        <div id="res-spans-sub" class="text-[11px] text-steel-400 mt-1">wszystkie równe</div>
+                    </div>
+
+                    <div class="bg-steel-800 p-4 rounded-xl border border-steel-700 col-span-2">
+                        <div id="res-span-width-label" class="text-xs text-steel-400">Szerokość każdego przęsła (w świetle słupków)</div>
+                        <div id="res-span-width-cm" class="text-2xl sm:text-3xl font-mono font-extrabold text-white mt-1">241,20 cm</div>
+                        <div id="res-span-width-mm" class="text-xs font-mono text-steel-300 mt-1">2412,0 mm • rozstaw osiowy słupków: 249,2 cm</div>
+                    </div>
+                </div>
+
+                <!-- Przycisk przeniesienia szerokości przęsła do zakładki 1 -->
+                <div class="pt-1 flex flex-wrap items-center justify-between gap-3 border-t border-steel-800">
+                    <span class="text-xs text-steel-400">Chcesz policzyć poprzeczki dokładnie dla tego przęsła?</span>
+                    <button type="button" onclick="applySpanToSpacingTab()"
+                        class="px-4 py-2.5 rounded-xl bg-safety-600 hover:bg-safety-700 text-white text-xs sm:text-sm font-bold transition active:scale-95 shadow">
+                        Użyj tej szerokości w zakładce „1. Odstępy” →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Schemat linii ogrodzenia -->
+            <div class="bg-white rounded-2xl shadow-sm border border-steel-200 p-4 sm:p-6 space-y-3">
+                <h3 class="text-base font-bold text-steel-900">Schemat linii ogrodzenia (rzut z góry)</h3>
+                <div class="w-full bg-steel-50 border border-steel-200 rounded-xl p-3 overflow-hidden">
+                    <svg id="spans-svg" class="w-full h-auto max-h-[200px]" viewBox="0 0 700 150" xmlns="http://www.w3.org/2000/svg"></svg>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ========================================================= -->
+        <!-- ZAKŁADKA 3: ZESTAWIENIE MATERIAŁÓW                        -->
+        <!-- ========================================================= -->
+        <section id="tab-summary" class="hidden space-y-5">
+
+            <!-- Automatyczne podsumowanie z obliczeń -->
+            <div class="bg-white rounded-2xl shadow-sm border border-steel-200 p-4 sm:p-6 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-steel-100 pb-3">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-steel-900">Zestawienie materiałów</h2>
+                        <p class="text-xs text-steel-500">Wyliczone automatycznie na podstawie zakładek 1 i 2</p>
+                    </div>
+                    <button type="button" id="copy-summary-btn" onclick="copySummaryToClipboard()"
+                        class="px-4 py-2.5 rounded-xl bg-steel-900 hover:bg-steel-800 text-white text-xs sm:text-sm font-bold transition active:scale-95 flex items-center gap-2 shadow">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        <span id="copy-btn-text">Kopiuj zestawienie</span>
+                    </button>
+                </div>
+
+                <!-- Lista główna -->
+                <div id="auto-materials-list" class="divide-y divide-steel-100">
+                    <!-- Wypełniane dynamicznie przez JS -->
+                </div>
+
+                <!-- Dodatkowe pozycje dodane przez użytkownika -->
+                <div id="custom-materials-container" class="pt-2 hidden">
+                    <h3 class="text-xs uppercase tracking-wider font-bold text-steel-400 mb-2">Własne pozycje</h3>
+                    <div id="custom-materials-list" class="divide-y divide-steel-100 border-t border-steel-100"></div>
+                </div>
+            </div>
+
+            <!-- Formularz dodawania własnej pozycji -->
+            <div class="bg-white rounded-2xl shadow-sm border border-steel-200 p-4 sm:p-6 space-y-3">
+                <h3 class="text-sm font-bold text-steel-800">Dodaj własną pozycję do listy (np. daszki, wkręty, beton)</h3>
+                <form onsubmit="addCustomMaterial(event)" class="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                    <input type="text" id="custom-item-name" placeholder="Nazwa materiału (np. Daszek na słupek 80x80)" required
+                        class="sm:col-span-6 h-11 px-3.5 text-sm bg-steel-50 border border-steel-300 rounded-xl focus:border-safety-600 focus:bg-white focus:outline-none">
+                    <input type="number" id="custom-item-qty" placeholder="Ilość" step="0.1" min="0.1" required
+                        class="sm:col-span-2 h-11 px-3.5 text-sm font-mono font-bold bg-steel-50 border border-steel-300 rounded-xl focus:border-safety-600 focus:bg-white focus:outline-none">
+                    <select id="custom-item-unit"
+                        class="sm:col-span-2 h-11 px-3 text-sm font-semibold bg-steel-50 border border-steel-300 rounded-xl focus:border-safety-600 focus:bg-white focus:outline-none">
+                        <option value="szt.">szt.</option>
+                        <option value="mb">mb</option>
+                        <option value="opak.">opak.</option>
+                        <option value="worków">worków</option>
+                        <option value="l">l</option>
+                    </select>
+                    <button type="submit"
+                        class="sm:col-span-2 h-11 px-4 bg-safety-600 hover:bg-safety-700 text-white text-sm font-bold rounded-xl transition active:scale-95">
+                        + Dodaj
+                    </button>
+                </form>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Stopka -->
+    <footer class="max-w-4xl w-full mx-auto px-4 py-5 text-center text-xs text-steel-500">
+        Kalkulator Ogrodzeń • Działa w 100% offline w przeglądarce
+    </footer>
+
+    <!-- Ukryte pole pomocnicze do kopiowania ze schowka -->
+    <textarea id="clipboard-helper" class="sr-only" aria-hidden="true"></textarea>
+
+    <script>
+        // =====================================================================
+        // STAN APLIKACJI
+        // =====================================================================
+        const state = {
+            activeTab: 'spacing',
+            orientation: 'horizontal', // 'horizontal' (sztachety pionowe wzdłuż poziomu) lub 'vertical' (żaluzja pozioma od dołu do góry)
+            autoOrientation: 'horizontal',
+            spacing: {
+                length: 200,
+                barWidth: 4,
+                barCount: 3,
+                mode: 'even-all', // 'even-all' (n+1) lub 'edge-flush' (n-1)
+                gapCm: 47,
+                isValid: true
+            },
+            autoSpacing: {
+                length: 200,
+                barWidth: 4,
+                minGap: 9.0,
+                maxGap: 10.0,
+                mode: 'even-all',
+                optimalCount: 14,
+                selectedCount: 14,
+                gapCm: 9.6,
+                isValid: true
+            },
+            spans: {
+                totalLengthM: 25,
+                postWidthCm: 8,
+                targetSpanCm: 250,
+                mode: 'equal', // 'equal' lub 'fixed-plus-cut'
+                postsCount: 11,
+                spansCount: 10,
+                mainSpanCm: 241.2,
+                lastSpanCm: 241.2,
+                hasCutSpan: false,
+                isValid: true
+            },
+            customItems: []
+        };
+
+        // Formatowanie liczb po polsku (przecinek dziesiętny)
+        function fmt(num, decimals = 2) {
+            if (isNaN(num) || !isFinite(num)) return '0';
+            return num.toLocaleString('pl-PL', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+        }
+
+        // =====================================================================
+        // NAWIGACJA ZAKŁADEK
+        // =====================================================================
+        function switchTab(tabName) {
+            state.activeTab = tabName;
+            const tabs = ['spacing', 'auto', 'spans', 'summary'];
+
+            tabs.forEach(t => {
+                const section = document.getElementById(`tab-${t}`);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tabName) {
+                    section.classList.remove('hidden');
+                    btn.classList.remove('text-steel-300', 'hover:bg-steel-700', 'hover:text-white');
+                    btn.classList.add('bg-safety-600', 'text-white', 'shadow');
+                    btn.setAttribute('aria-selected', 'true');
+                } else {
+                    section.classList.add('hidden');
+                    btn.classList.remove('bg-safety-600', 'text-white', 'shadow');
+                    btn.classList.add('text-steel-300', 'hover:bg-steel-700', 'hover:text-white');
+                    btn.setAttribute('aria-selected', 'false');
+                }
+            });
+
+            if (tabName === 'summary') {
+                renderSummary();
+            }
+        }
+
+        // =====================================================================
+        // ZAKŁADKA 1: OBLICZANIE ODSTĘPÓW POPRZECZEK
+        // =====================================================================
+        function adjustBarCount(delta) {
+            const input = document.getElementById('sp-count-input');
+            let val = parseInt(input.value, 10) || 1;
+            val = Math.max(1, Math.min(200, val + delta));
+            input.value = val;
+            document.getElementById('sp-count-slider').value = Math.min(50, val);
+            calculateSpacing();
+        }
+
+        function syncBarCountFromInput() {
+            const input = document.getElementById('sp-count-input');
+            let val = parseInt(input.value, 10);
+            if (isNaN(val) || val < 1) val = 1;
+            document.getElementById('sp-count-slider').value = Math.min(50, val);
+            calculateSpacing();
+        }
+
+        function syncBarCountFromSlider() {
+            const slider = document.getElementById('sp-count-slider');
+            document.getElementById('sp-count-input').value = slider.value;
+            calculateSpacing();
+        }
+
+        function setOrientation(orient) {
+            state.orientation = orient;
+            const btnH = document.getElementById('orient-btn-horizontal');
+            const btnV = document.getElementById('orient-btn-vertical');
+
+            if (orient === 'horizontal') {
+                btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-steel-900 shadow-sm';
+                btnV.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition text-steel-600 hover:text-steel-900';
+            } else {
+                btnV.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-steel-900 shadow-sm';
+                btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition text-steel-600 hover:text-steel-900';
+            }
+            drawSpacingSVG();
+        }
+
+        function calculateSpacing() {
+            const length = parseFloat(document.getElementById('sp-length').value) || 0;
+            const barWidth = parseFloat(document.getElementById('sp-bar-width').value) || 0;
+            const barCount = Math.max(1, parseInt(document.getElementById('sp-count-input').value, 10) || 1);
+            const mode = document.querySelector('input[name="sp-mode"]:checked').value;
+
+            state.spacing.length = length;
+            state.spacing.barWidth = barWidth;
+            state.spacing.barCount = barCount;
+            state.spacing.mode = mode;
+
+            const totalBarsWidth = barCount * barWidth;
+            const freeSpace = length - totalBarsWidth;
+            const gapsCount = (mode === 'even-all') ? (barCount + 1) : (barCount - 1);
+
+            const warningEl = document.getElementById('sp-warning');
+            const warningTextEl = document.getElementById('sp-warning-text');
+            const validResultsEl = document.getElementById('sp-valid-results');
+            const resultCard = document.getElementById('sp-result-card');
+
+            // Walidacja poprawności wymiarów
+            if (length <= 0 || barWidth <= 0) {
+                state.spacing.isValid = false;
+                warningEl.classList.remove('hidden');
+                warningTextEl.textContent = 'Wpisz dodatnią długość odcinka oraz szerokość poprzeczki.';
+                validResultsEl.classList.add('opacity-40');
+                resultCard.classList.replace('border-safety-600', 'border-red-600');
+                drawSpacingSVG();
+                return;
+            }
+
+            if (mode === 'edge-flush' && barCount < 2) {
+                state.spacing.isValid = false;
+                warningEl.classList.remove('hidden');
+                warningTextEl.textContent = 'Dla trybu „Skrajne na krawędziach” potrzebujesz co najmniej 2 poprzeczek.';
+                validResultsEl.classList.add('opacity-40');
+                resultCard.classList.replace('border-safety-600', 'border-red-600');
+                drawSpacingSVG();
+                return;
+            }
+
+            if (totalBarsWidth >= length) {
+                state.spacing.isValid = false;
+                warningEl.classList.remove('hidden');
+                warningTextEl.textContent = `Łączna szerokość ${barCount} poprzeczek (${fmt(totalBarsWidth, 1)} cm) jest większa lub równa długości odcinka (${fmt(length, 1)} cm). Zmniejsz liczbę poprzeczek lub ich szerokość.`;
+                validResultsEl.classList.add('opacity-40');
+                resultCard.classList.replace('border-safety-600', 'border-red-600');
+                drawSpacingSVG();
+                return;
+            }
+
+            // Poprawne obliczenia
+            state.spacing.isValid = true;
+            warningEl.classList.add('hidden');
+            validResultsEl.classList.remove('opacity-40');
+            resultCard.classList.replace('border-red-600', 'border-safety-600');
+
+            const gapCm = freeSpace / gapsCount;
+            const gapMm = gapCm * 10;
+            const centerToCenterCm = gapCm + barWidth;
+
+            state.spacing.gapCm = gapCm;
+
+            document.getElementById('res-gap-cm').textContent = `${fmt(gapCm, 2)} cm`;
+            document.getElementById('res-gap-mm').textContent = `${fmt(gapMm, 1)} mm`;
+            document.getElementById('res-center-to-center').textContent = `${fmt(centerToCenterCm, 2)} cm`;
+            document.getElementById('res-gaps-count').textContent = `${gapsCount} szt.`;
+            document.getElementById('res-bars-total-width').textContent = `${fmt(totalBarsWidth, 1)} cm`;
+            document.getElementById('res-free-space').textContent = `${fmt(freeSpace, 1)} cm`;
+
+            drawSpacingSVG();
+        }
+
+        // Rysowanie dynamicznego schematu SVG dla zakładki 1
+        function drawSpacingSVG() {
+            renderFenceSectionSVG('spacing-svg', {
+                length: state.spacing.length,
+                barWidth: state.spacing.barWidth,
+                barCount: state.spacing.barCount,
+                mode: state.spacing.mode,
+                gapCm: state.spacing.gapCm,
+                isValid: state.spacing.isValid,
+                isHoriz: state.orientation === 'horizontal'
+            });
+        }
+
+        // Wspólny silnik rysowania technicznego SVG dla zakładek 1 i 2
+        function renderFenceSectionSVG(svgId, cfg) {
+            const svg = document.getElementById(svgId);
+            const { length, barWidth, barCount, mode, gapCm, isValid, isHoriz } = cfg;
+
+            if (!isValid || length <= 0) {
+                svg.setAttribute('viewBox', '0 0 700 140');
+                svg.innerHTML = `
+                    <rect x="20" y="20" width="660" height="100" rx="10" fill="#fee2e2" stroke="#ef4444" stroke-width="2" stroke-dasharray="6 4"/>
+                    <text x="350" y="75" text-anchor="middle" fill="#b91c1c" font-family="Inter, sans-serif" font-size="15" font-weight="700">
+                        Popraw wymiary powyżej, aby wyświetlić schemat techniczny
+                    </text>
+                `;
+                return;
+            }
+
+            if (isHoriz) {
+                // ORIENTACJA POZIOMA (np. przęsło z pionowymi sztachetami od słupka do słupka)
+                svg.setAttribute('viewBox', '0 0 700 240');
+                const padX = 50;
+                const drawW = 600;
+                const scale = drawW / length;
+                const barY = 65;
+                const barH = 110;
+
+                let html = '';
+
+                // Główna wymiarówka całkowita na dole
+                html += `
+                    <line x1="${padX}" y1="205" x2="${padX + drawW}" y2="205" stroke="#475569" stroke-width="1.5"/>
+                    <line x1="${padX}" y1="197" x2="${padX}" y2="213" stroke="#475569" stroke-width="1.5"/>
+                    <line x1="${padX + drawW}" y1="197" x2="${padX + drawW}" y2="213" stroke="#475569" stroke-width="1.5"/>
+                    <rect x="${padX + drawW/2 - 58}" y="193" width="116" height="22" rx="4" fill="#f8fafc"/>
+                    <text x="${padX + drawW/2}" y="209" text-anchor="middle" fill="#0f172a" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">
+                        Dł: ${fmt(length, 1)} cm
+                    </text>
+                `;
+
+                // Poprzeczki poziome (rygle nośne w tle)
+                html += `
+                    <rect x="${padX}" y="${barY + 18}" width="${drawW}" height="12" fill="#cbd5e1" rx="2"/>
+                    <rect x="${padX}" y="${barY + barH - 30}" width="${drawW}" height="12" fill="#cbd5e1" rx="2"/>
+                `;
+
+                // Skrajne słupki / ograniczniki odcinka
+                html += `
+                    <rect x="${padX - 10}" y="${barY - 10}" width="10" height="${barH + 20}" fill="#334155" rx="2"/>
+                    <rect x="${padX + drawW}" y="${barY - 10}" width="10" height="${barH + 20}" fill="#334155" rx="2"/>
+                `;
+
+                // Rysowanie sztachet / poprzeczek
+                let currentCm = (mode === 'even-all') ? gapCm : 0;
+                const barPxW = Math.max(2, barWidth * scale);
+                const gapPxW = gapCm * scale;
+
+                for (let i = 0; i < barCount; i++) {
+                    const x = padX + currentCm * scale;
+                    html += `
+                        <rect x="${x}" y="${barY}" width="${barPxW}" height="${barH}" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    `;
+                    currentCm += barWidth + gapCm;
+                }
+
+                // Oznaczenie pierwszego odstępu na górze (pomarańczowy wymiar)
+                const firstGapStart = (mode === 'even-all') ? padX : (padX + barPxW);
+                const firstGapEnd = firstGapStart + gapPxW;
+                if (gapPxW > 5) {
+                    const midGap = (firstGapStart + firstGapEnd) / 2;
+                    html += `
+                        <line x1="${firstGapStart}" y1="38" x2="${firstGapEnd}" y2="38" stroke="#ea580c" stroke-width="2"/>
+                        <line x1="${firstGapStart}" y1="30" x2="${firstGapStart}" y2="58" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="3 2"/>
+                        <line x1="${firstGapEnd}" y1="30" x2="${firstGapEnd}" y2="58" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="3 2"/>
+                        <rect x="${Math.max(10, midGap - 46)}" y="12" width="92" height="20" rx="4" fill="#ea580c"/>
+                        <text x="${Math.max(56, midGap)}" y="26" text-anchor="middle" fill="#ffffff" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">
+                            ${fmt(gapCm, 2)} cm
+                        </text>
+                    `;
+                }
+
+                svg.innerHTML = html;
+
+            } else {
+                // ORIENTACJA PIONOWA (np. przęsło żaluzjowe / balustrada z poziomymi profilami od dołu do góry)
+                svg.setAttribute('viewBox', '0 0 700 320');
+                const frameX = 210;
+                const frameW = 280;
+                const padY = 30;
+                const drawH = 260;
+                const scale = drawH / length;
+
+                let html = '';
+
+                // Pionowe słupki boczne
+                html += `
+                    <rect x="${frameX - 12}" y="${padY}" width="12" height="${drawH}" fill="#334155" rx="2"/>
+                    <rect x="${frameX + frameW}" y="${padY}" width="12" height="${drawH}" fill="#334155" rx="2"/>
+                `;
+
+                // Wymiar całkowity po prawej stronie
+                const dimX = frameX + frameW + 45;
+                html += `
+                    <line x1="${dimX}" y1="${padY}" x2="${dimX}" y2="${padY + drawH}" stroke="#475569" stroke-width="1.5"/>
+                    <line x1="${dimX - 8}" y1="${padY}" x2="${dimX + 8}" y2="${padY}" stroke="#475569" stroke-width="1.5"/>
+                    <line x1="${dimX - 8}" y1="${padY + drawH}" x2="${dimX + 8}" y2="${padY + drawH}" stroke="#475569" stroke-width="1.5"/>
+                    <rect x="${dimX + 10}" y="${padY + drawH/2 - 12}" width="105" height="24" rx="4" fill="#f8fafc"/>
+                    <text x="${dimX + 15}" y="${padY + drawH/2 + 4}" fill="#0f172a" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">
+                        Wys: ${fmt(length, 1)} cm
+                    </text>
+                `;
+
+                // Poziome poprzeczki
+                let currentCm = (mode === 'even-all') ? gapCm : 0;
+                const barPxH = Math.max(2, barWidth * scale);
+                const gapPxH = gapCm * scale;
+
+                for (let i = 0; i < barCount; i++) {
+                    const y = padY + currentCm * scale;
+                    html += `
+                        <rect x="${frameX}" y="${y}" width="${frameW}" height="${barPxH}" rx="2" fill="#1e293b" stroke="#0f172a" stroke-width="1"/>
+                    `;
+                    currentCm += barWidth + gapCm;
+                }
+
+                // Oznaczenie pierwszego odstępu po lewej stronie
+                const firstGapTop = (mode === 'even-all') ? padY : (padY + barPxH);
+                const firstGapBottom = firstGapTop + gapPxH;
+                const gapDimX = frameX - 35;
+
+                if (gapPxH > 5) {
+                    const midY = (firstGapTop + firstGapBottom) / 2;
+                    html += `
+                        <line x1="${gapDimX}" y1="${firstGapTop}" x2="${gapDimX}" y2="${firstGapBottom}" stroke="#ea580c" stroke-width="2"/>
+                        <line x1="${gapDimX - 6}" y1="${firstGapTop}" x2="${frameX}" y2="${firstGapTop}" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="3 2"/>
+                        <line x1="${gapDimX - 6}" y1="${firstGapBottom}" x2="${frameX}" y2="${firstGapBottom}" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="3 2"/>
+                        <rect x="${gapDimX - 102}" y="${Math.max(6, midY - 11)}" width="94" height="22" rx="4" fill="#ea580c"/>
+                        <text x="${gapDimX - 55}" y="${Math.max(21, midY + 4)}" text-anchor="middle" fill="#ffffff" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">
+                            ${fmt(gapCm, 2)} cm
+                        </text>
+                    `;
+                }
+
+                svg.innerHTML = html;
+            }
+        }
+
+        // =====================================================================
+        // ZAKŁADKA 2: AUTO-ROZSTAW DO MAKSYMALNEGO PRZEŚWITU (NP. 9-10 CM)
+        // =====================================================================
+        function setAutoGapPreset(minVal, maxVal) {
+            document.getElementById('au-min-gap').value = minVal.toFixed(1);
+            document.getElementById('au-max-gap').value = maxVal.toFixed(1);
+            calculateAutoSpacing(true);
+        }
+
+        function setAutoOrientation(orient) {
+            state.autoOrientation = orient;
+            const btnH = document.getElementById('au-orient-btn-horizontal');
+            const btnV = document.getElementById('au-orient-btn-vertical');
+
+            if (orient === 'horizontal') {
+                btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-steel-900 shadow-sm';
+                btnV.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition text-steel-600 hover:text-steel-900';
+            } else {
+                btnV.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition bg-white text-steel-900 shadow-sm';
+                btnH.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition text-steel-600 hover:text-steel-900';
+            }
+            drawAutoSpacingSVG();
+        }
+
+        // Oblicza prześwit dla podanej liczby sztuk n w trybie auto
+        function computeGapForCount(length, barWidth, n, mode) {
+            const totalBars = n * barWidth;
+            const freeSpace = length - totalBars;
+            const gaps = (mode === 'even-all') ? (n + 1) : (n - 1);
+            if (gaps <= 0) return Infinity;
+            return freeSpace / gaps;
+        }
+
+        function calculateAutoSpacing(resetSelectionToOptimal = true) {
+            const length = parseFloat(document.getElementById('au-length').value) || 0;
+            const barWidth = parseFloat(document.getElementById('au-bar-width').value) || 0;
+            let minGap = parseFloat(document.getElementById('au-min-gap').value);
+            let maxGap = parseFloat(document.getElementById('au-max-gap').value);
+            const mode = document.querySelector('input[name="au-mode"]:checked').value;
+
+            if (isNaN(minGap) || minGap < 0) minGap = 0;
+            if (isNaN(maxGap) || maxGap <= 0) maxGap = 10;
+            if (minGap > maxGap) {
+                const tmp = minGap;
+                minGap = maxGap;
+                maxGap = tmp;
+            }
+
+            state.autoSpacing.length = length;
+            state.autoSpacing.barWidth = barWidth;
+            state.autoSpacing.minGap = minGap;
+            state.autoSpacing.maxGap = maxGap;
+            state.autoSpacing.mode = mode;
+
+            const warningEl = document.getElementById('au-warning');
+            const warningTextEl = document.getElementById('au-warning-text');
+            const validResultsEl = document.getElementById('au-valid-results');
+            const resultCard = document.getElementById('au-result-card');
+            const tbody = document.getElementById('au-variants-tbody');
+
+            if (length <= 0 || barWidth <= 0 || maxGap <= 0) {
+                state.autoSpacing.isValid = false;
+                warningEl.classList.remove('hidden');
+                warningTextEl.textContent = 'Wpisz dodatnią długość przęsła, szerokość elementu oraz maksymalny prześwit.';
+                validResultsEl.classList.add('opacity-40');
+                resultCard.classList.remove('border-emerald-500', 'border-safety-600');
+                resultCard.classList.add('border-red-600');
+                tbody.innerHTML = '';
+                drawAutoSpacingSVG();
+                return;
+            }
+
+            // Wyznaczenie minimalnej liczby elementów n takiej, aby prześwit <= maxGap:
+            // Tryb 'even-all': (L - n*W) / (n + 1) <= maxGap  =>  n >= (L - maxGap) / (W + maxGap)
+            // Tryb 'edge-flush': (L - n*W) / (n - 1) <= maxGap =>  n >= (L + maxGap) / (W + maxGap)
+            let rawN = (mode === 'even-all')
+                ? (length - maxGap) / (barWidth + maxGap)
+                : (length + maxGap) / (barWidth + maxGap);
+
+            const minCountAllowed = (mode === 'even-all') ? 1 : 2;
+            const optimalCount = Math.max(minCountAllowed, Math.ceil(rawN - 1e-9));
+            const maxPossibleCount = Math.floor((length - 0.01) / barWidth);
+
+            if (optimalCount > maxPossibleCount || maxPossibleCount < minCountAllowed) {
+                state.autoSpacing.isValid = false;
+                warningEl.classList.remove('hidden');
+                warningTextEl.textContent = 'Przęsło jest zbyt wąskie względem szerokości pojedynczego elementu, aby uzyskać taki rozstaw.';
+                validResultsEl.classList.add('opacity-40');
+                resultCard.classList.remove('border-emerald-500', 'border-safety-600');
+                resultCard.classList.add('border-red-600');
+                tbody.innerHTML = '';
+                drawAutoSpacingSVG();
+                return;
+            }
+
+            state.autoSpacing.isValid = true;
+            state.autoSpacing.optimalCount = optimalCount;
+
+            if (resetSelectionToOptimal || !state.autoSpacing.selectedCount || state.autoSpacing.selectedCount > maxPossibleCount || state.autoSpacing.selectedCount < minCountAllowed) {
+                state.autoSpacing.selectedCount = optimalCount;
+            }
+
+            const activeCount = state.autoSpacing.selectedCount;
+            const activeGap = computeGapForCount(length, barWidth, activeCount, mode);
+            state.autoSpacing.gapCm = activeGap;
+
+            warningEl.classList.add('hidden');
+            validResultsEl.classList.remove('opacity-40');
+
+            // Aktualizacja głównego kafelka wyniku
+            const inTargetRange = (activeGap >= minGap - 1e-6 && activeGap <= maxGap + 1e-6);
+            const underMaxOnly = (!inTargetRange && activeGap <= maxGap + 1e-6);
+
+            const badgeEl = document.getElementById('au-status-badge');
+            if (inTargetRange) {
+                badgeEl.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+                badgeEl.textContent = `✓ OPTYMALNY (w zakresie ${fmt(minGap, 1)} – ${fmt(maxGap, 1)} cm)`;
+                resultCard.classList.remove('border-red-600', 'border-safety-600', 'border-amber-500');
+                resultCard.classList.add('border-emerald-500');
+            } else if (underMaxOnly) {
+                badgeEl.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/40';
+                badgeEl.textContent = `✓ Poniżej limitu ${fmt(maxGap, 1)} cm (gęstszy rozstaw)`;
+                resultCard.classList.remove('border-red-600', 'border-emerald-500', 'border-amber-500');
+                resultCard.classList.add('border-safety-600');
+            } else {
+                badgeEl.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40';
+                badgeEl.textContent = `⚠️ Przekracza limit ${fmt(maxGap, 1)} cm`;
+                resultCard.classList.remove('border-red-600', 'border-emerald-500', 'border-safety-600');
+                resultCard.classList.add('border-amber-500');
+            }
+
+            const gapsCount = (mode === 'even-all') ? (activeCount + 1) : (activeCount - 1);
+            const ctcCm = activeGap + barWidth;
+            const totalMaterialCm = activeCount * barWidth;
+
+            document.getElementById('au-res-count').textContent = `${activeCount} szt.`;
+            document.getElementById('au-res-count-sub').textContent = (activeCount === optimalCount)
+                ? 'Optymalna liczba sztuk wyliczona automatycznie dla zadanego zakresu'
+                : `Wybrano wariant ręczny (optymalny automatyczny to ${optimalCount} szt.)`;
+            document.getElementById('au-res-gap-cm').textContent = `${fmt(activeGap, 2)} cm`;
+            document.getElementById('au-res-gap-mm').textContent = `${fmt(activeGap * 10, 1)} mm`;
+            document.getElementById('au-res-ctc').textContent = `${fmt(ctcCm, 2)} cm`;
+            document.getElementById('au-res-gaps-count').textContent = `${gapsCount} szt.`;
+            document.getElementById('au-res-material-width').textContent = `${fmt(totalMaterialCm, 1)} cm`;
+
+            // Budowa tabeli wariantów (+/- 2 sztuki wokół wyniku optymalnego)
+            const startN = Math.max(minCountAllowed, optimalCount - 2);
+            const endN = Math.min(maxPossibleCount, optimalCount + 2);
+            let rowsHtml = '';
+
+            for (let n = startN; n <= endN; n++) {
+                const g = computeGapForCount(length, barWidth, n, mode);
+                const isSelected = (n === activeCount);
+                const isOpt = (n === optimalCount);
+                const isInRange = (g >= minGap - 1e-6 && g <= maxGap + 1e-6);
+
+                let statusBadge = '';
+                if (isOpt && isInRange) {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">OPTYMALNY (w zakresie)</span>`;
+                } else if (isOpt) {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">OPTYMALNY (≤ ${fmt(maxGap, 1)} cm)</span>`;
+                } else if (g <= maxGap + 1e-6) {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-steel-100 text-steel-700">Gęściej (≤ ${fmt(maxGap, 1)} cm)</span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">Za szeroko (&gt; ${fmt(maxGap, 1)} cm)</span>`;
+                }
+
+                rowsHtml += `
+                    <tr onclick="selectAutoVariant(${n})" class="cursor-pointer transition ${isSelected ? 'bg-orange-50/90 font-semibold' : 'hover:bg-steel-50'}">
+                        <td class="py-3 px-3 font-mono font-bold text-steel-900">
+                            ${n} szt. ${isSelected ? '<span class="ml-1 text-xs text-safety-600">●</span>' : ''}
+                        </td>
+                        <td class="py-3 px-3 font-mono font-bold ${isSelected ? 'text-safety-700' : 'text-steel-800'}">${fmt(g, 2)} cm</td>
+                        <td class="py-3 px-3 font-mono text-steel-600">${fmt(g * 10, 1)} mm</td>
+                        <td class="py-3 px-3">${statusBadge}</td>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = rowsHtml;
+            drawAutoSpacingSVG();
+        }
+
+        function selectAutoVariant(count) {
+            state.autoSpacing.selectedCount = count;
+            calculateAutoSpacing(false);
+        }
+
+        function drawAutoSpacingSVG() {
+            renderFenceSectionSVG('auto-spacing-svg', {
+                length: state.autoSpacing.length,
+                barWidth: state.autoSpacing.barWidth,
+                barCount: state.autoSpacing.selectedCount,
+                mode: state.autoSpacing.mode,
+                gapCm: state.autoSpacing.gapCm,
+                isValid: state.autoSpacing.isValid,
+                isHoriz: state.autoOrientation === 'horizontal'
+            });
+        }
+
+        // Przeniesienie wyliczonej liczby elementów z Auto-rozstawu do Zestawienia (i synchronizacja z zakładką 1)
+        function applyAutoToSummary() {
+            if (!state.autoSpacing.isValid) return;
+
+            document.getElementById('sp-length').value = state.autoSpacing.length;
+            document.getElementById('sp-bar-width').value = state.autoSpacing.barWidth;
+            document.getElementById('sp-count-input').value = state.autoSpacing.selectedCount;
+            document.getElementById('sp-count-slider').value = Math.min(50, state.autoSpacing.selectedCount);
+
+            const modeRadio = document.querySelector(`input[name="sp-mode"][value="${state.autoSpacing.mode}"]`);
+            if (modeRadio) modeRadio.checked = true;
+
+            calculateSpacing();
+            switchTab('summary');
+        }
+
+        // =====================================================================
+        // ZAKŁADKA 3: PRZĘSŁA I SŁUPKI
+        // =====================================================================
+        function calculateSpans() {
+            const totalLengthM = parseFloat(document.getElementById('fn-total-length').value) || 0;
+            const postWidthCm = parseFloat(document.getElementById('fn-post-width').value) || 0;
+            const targetSpanCm = parseFloat(document.getElementById('fn-target-span').value) || 0;
+            const mode = document.querySelector('input[name="fn-mode"]:checked').value;
+
+            state.spans.totalLengthM = totalLengthM;
+            state.spans.postWidthCm = postWidthCm;
+            state.spans.targetSpanCm = targetSpanCm;
+            state.spans.mode = mode;
+
+            const totalCm = totalLengthM * 100;
+            const warningEl = document.getElementById('fn-warning');
+            const gridEl = document.getElementById('fn-results-grid');
+
+            if (totalCm <= postWidthCm * 2 || targetSpanCm <= 0 || postWidthCm <= 0) {
+                state.spans.isValid = false;
+                warningEl.classList.remove('hidden');
+                gridEl.classList.add('opacity-40');
+                return;
+            }
+
+            state.spans.isValid = true;
+            warningEl.classList.add('hidden');
+            gridEl.classList.remove('opacity-40');
+
+            // Wzór ogólny:
+            // Długość całkowita L = (N + 1) * S_słupka + N * S_przęsła
+            // => L - S_słupka = N * (S_przęsła + S_słupka)
+            const moduleTarget = targetSpanCm + postWidthCm;
+            const availableWithoutFirstPost = totalCm - postWidthCm;
+
+            if (mode === 'equal') {
+                // Liczba przęseł zaokrąglona w górę, żeby żadne przęsło nie przekroczyło docelowego
+                const spansCount = Math.max(1, Math.ceil(availableWithoutFirstPost / moduleTarget));
+                const postsCount = spansCount + 1;
+                const exactSpanCm = (totalCm - postsCount * postWidthCm) / spansCount;
+
+                state.spans.spansCount = spansCount;
+                state.spans.postsCount = postsCount;
+                state.spans.mainSpanCm = exactSpanCm;
+                state.spans.lastSpanCm = exactSpanCm;
+                state.spans.hasCutSpan = false;
+
+                document.getElementById('res-posts-count').textContent = `${postsCount} szt.`;
+                document.getElementById('res-spans-count').textContent = `${spansCount} szt.`;
+                document.getElementById('res-spans-sub').textContent = `wszystkie jednakowe`;
+                document.getElementById('res-span-width-label').textContent = `Szerokość każdego przęsła (w świetle słupków)`;
+                document.getElementById('res-span-width-cm').textContent = `${fmt(exactSpanCm, 2)} cm`;
+                document.getElementById('res-span-width-mm').textContent = `${fmt(exactSpanCm * 10, 1)} mm • rozstaw osiowy słupków: ${fmt(exactSpanCm + postWidthCm, 1)} cm`;
+            } else {
+                // Stałe przęsła o szerokości targetSpanCm + ostatnie krótsze (jeśli zostaje reszta)
+                const fullSpans = Math.floor(availableWithoutFirstPost / moduleTarget);
+                const remainderCm = availableWithoutFirstPost - (fullSpans * moduleTarget);
+
+                if (remainderCm > 1) {
+                    // Jest docinka na końcu (po odjęciu ostatniego słupka zostaje światło ostatniego przęsła)
+                    const totalSpans = fullSpans + 1;
+                    const postsCount = totalSpans + 1;
+                    const lastSpanCm = Math.max(0, remainderCm - postWidthCm);
+
+                    state.spans.spansCount = totalSpans;
+                    state.spans.postsCount = postsCount;
+                    state.spans.mainSpanCm = targetSpanCm;
+                    state.spans.lastSpanCm = lastSpanCm;
+                    state.spans.hasCutSpan = true;
+
+                    document.getElementById('res-posts-count').textContent = `${postsCount} szt.`;
+                    document.getElementById('res-spans-count').textContent = `${totalSpans} szt.`;
+                    document.getElementById('res-spans-sub').textContent = `${fullSpans} pełne + 1 docinka`;
+                    document.getElementById('res-span-width-label').textContent = `Wymiary przęseł (pełne / ostatnie)`;
+                    document.getElementById('res-span-width-cm').textContent = `${fmt(targetSpanCm, 1)} cm / ${fmt(lastSpanCm, 1)} cm`;
+                    document.getElementById('res-span-width-mm').textContent = `Pełne: ${fmt(targetSpanCm * 10, 0)} mm • Ostatnie (docinka): ${fmt(lastSpanCm * 10, 0)} mm`;
+                } else {
+                    const spansCount = Math.max(1, fullSpans);
+                    const postsCount = spansCount + 1;
+
+                    state.spans.spansCount = spansCount;
+                    state.spans.postsCount = postsCount;
+                    state.spans.mainSpanCm = targetSpanCm;
+                    state.spans.lastSpanCm = targetSpanCm;
+                    state.spans.hasCutSpan = false;
+
+                    document.getElementById('res-posts-count').textContent = `${postsCount} szt.`;
+                    document.getElementById('res-spans-count').textContent = `${spansCount} szt.`;
+                    document.getElementById('res-spans-sub').textContent = `wszystkie pełne bez docinki`;
+                    document.getElementById('res-span-width-label').textContent = `Szerokość każdego przęsła (w świetle słupków)`;
+                    document.getElementById('res-span-width-cm').textContent = `${fmt(targetSpanCm, 2)} cm`;
+                    document.getElementById('res-span-width-mm').textContent = `${fmt(targetSpanCm * 10, 1)} mm • idealnie bez docinki`;
+                }
+            }
+
+            drawSpansSVG();
+        }
+
+        function applySpanToSpacingTab() {
+            if (!state.spans.isValid) return;
+            document.getElementById('sp-length').value = state.spans.mainSpanCm.toFixed(1);
+            calculateSpacing();
+            switchTab('spacing');
+        }
+
+        function drawSpansSVG() {
+            const svg = document.getElementById('spans-svg');
+            const { totalLengthM, postWidthCm, spansCount, mainSpanCm, lastSpanCm, hasCutSpan, isValid } = state.spans;
+
+            if (!isValid) {
+                svg.innerHTML = '';
+                return;
+            }
+
+            const totalCm = totalLengthM * 100;
+            const padX = 30;
+            const drawW = 640;
+            const scale = drawW / totalCm;
+            const y = 45;
+            const h = 44;
+
+            // Ograniczamy liczbę rysowanych elementów jeśli przęseł jest bardzo dużo (>35), żeby zachować czytelność
+            const maxVisible = 35;
+            const drawCount = Math.min(spansCount, maxVisible);
+
+            let html = '';
+            let curX = padX;
+            const postPx = Math.max(4, postWidthCm * scale);
+
+            for (let i = 0; i < drawCount; i++) {
+                // Słupek
+                html += `<rect x="${curX}" y="${y - 6}" width="${postPx}" height="${h + 12}" rx="1.5" fill="#1e293b"/>`;
+                curX += postPx;
+
+                // Przęsło
+                const isLastCut = hasCutSpan && (i === spansCount - 1);
+                const spanWcm = isLastCut ? lastSpanCm : mainSpanCm;
+                const spanPx = Math.max(6, (spansCount > maxVisible ? (drawW / maxVisible - postPx) : spanWcm * scale));
+
+                html += `
+                    <rect x="${curX}" y="${y + 6}" width="${spanPx}" height="${h - 12}" fill="${isLastCut ? '#ffedd5' : '#e2e8f0'}" stroke="${isLastCut ? '#ea580c' : '#94a3b8'}" stroke-width="1.5"/>
+                `;
+                curX += spanPx;
+            }
+
+            // Ostatni słupek
+            html += `<rect x="${curX}" y="${y - 6}" width="${postPx}" height="${h + 12}" rx="1.5" fill="#1e293b"/>`;
+            curX += postPx;
+
+            // Wymiar całkowity
+            html += `
+                <line x1="${padX}" y1="115" x2="${curX}" y2="115" stroke="#475569" stroke-width="1.5"/>
+                <line x1="${padX}" y1="108" x2="${padX}" y2="122" stroke="#475569" stroke-width="1.5"/>
+                <line x1="${curX}" y1="108" x2="${curX}" y2="122" stroke="#475569" stroke-width="1.5"/>
+                <rect x="${(padX + curX)/2 - 85}" y="103" width="170" height="22" rx="4" fill="#f8fafc"/>
+                <text x="${(padX + curX)/2}" y="119" text-anchor="middle" fill="#0f172a" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">
+                    Łącznie: ${fmt(totalLengthM, 2)} m (${spansCount} przęseł)
+                </text>
+            `;
+
+            if (spansCount > maxVisible) {
+                html += `<text x="350" y="24" text-anchor="middle" fill="#64748b" font-size="11" font-weight="600">Schemat poglądowy (pokazano pierwsze ${maxVisible} z ${spansCount} przęseł)</text>`;
+            }
+
+            svg.innerHTML = html;
+        }
+
+        // =====================================================================
+        // ZAKŁADKA 3: ZESTAWIENIE MATERIAŁÓW
+        // =====================================================================
+        function getAutoMaterials() {
+            const { postsCount, spansCount, mainSpanCm, lastSpanCm, hasCutSpan, postWidthCm } = state.spans;
+            const { barCount, barWidth, length } = state.spacing;
+
+            const totalBars = spansCount * barCount;
+            // Szacowana długość jednego elementu (jeśli w zakładce 1 podano np. wysokość przęsła 150 cm, to długość poprzeczki odpowiada szerokości przęsła z zakładki 2)
+            const totalLinearMeters = hasCutSpan
+                ? (((spansCount - 1) * mainSpanCm + lastSpanCm) * barCount) / 100
+                : (spansCount * mainSpanCm * barCount) / 100;
+
+            const items = [
+                {
+                    name: `Słupki ogrodzeniowe (szer. ${fmt(postWidthCm, 1)} cm)`,
+                    qty: postsCount,
+                    unit: 'szt.',
+                    note: 'Wraz ze słupkiem początkowym i końcowym'
+                },
+                {
+                    name: hasCutSpan
+                        ? `Przęsła ogrodzeniowe (${spansCount - 1} × ${fmt(mainSpanCm, 1)} cm + 1 × ${fmt(lastSpanCm, 1)} cm)`
+                        : `Przęsła ogrodzeniowe (szer. ${fmt(mainSpanCm, 1)} cm)`,
+                    qty: spansCount,
+                    unit: 'szt.',
+                    note: 'Wymiar w świetle między słupkami'
+                },
+                {
+                    name: `Poprzeczki / profile wypełnienia (szer. ${fmt(barWidth, 1)} cm)`,
+                    qty: totalBars,
+                    unit: 'szt.',
+                    note: `Po ${barCount} szt. na każde z ${spansCount} przęseł`
+                },
+                {
+                    name: `Łączna długość materiału na poprzeczki (bez naddatku na odpady)`,
+                    qty: Number(totalLinearMeters.toFixed(2)),
+                    unit: 'mb',
+                    note: `Przy szerokości przęseł z zakładki 2`
+                }
+            ];
+
+            return items;
+        }
+
+        function renderSummary() {
+            const autoListEl = document.getElementById('auto-materials-list');
+            const items = getAutoMaterials();
+
+            autoListEl.innerHTML = items.map(item => `
+                <div class="py-3.5 flex items-center justify-between gap-4">
+                    <div>
+                        <div class="font-bold text-sm sm:text-base text-steel-900">${item.name}</div>
+                        <div class="text-xs text-steel-500 mt-0.5">${item.note}</div>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <span class="inline-block bg-steel-100 border border-steel-200 px-3 py-1.5 rounded-lg font-mono font-extrabold text-base text-steel-900">
+                            ${fmt(item.qty, item.unit === 'mb' ? 2 : 0)} ${item.unit}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+
+            renderCustomMaterials();
+        }
+
+        function addCustomMaterial(event) {
+            event.preventDefault();
+            const nameInput = document.getElementById('custom-item-name');
+            const qtyInput = document.getElementById('custom-item-qty');
+            const unitSelect = document.getElementById('custom-item-unit');
+
+            const name = nameInput.value.trim();
+            const qty = parseFloat(qtyInput.value);
+            const unit = unitSelect.value;
+
+            if (!name || isNaN(qty) || qty <= 0) return;
+
+            state.customItems.push({
+                id: Date.now(),
+                name,
+                qty,
+                unit
+            });
+
+            nameInput.value = '';
+            qtyInput.value = '';
+            renderCustomMaterials();
+        }
+
+        function removeCustomMaterial(id) {
+            state.customItems = state.customItems.filter(item => item.id !== id);
+            renderCustomMaterials();
+        }
+
+        function renderCustomMaterials() {
+            const container = document.getElementById('custom-materials-container');
+            const listEl = document.getElementById('custom-materials-list');
+
+            if (state.customItems.length === 0) {
+                container.classList.add('hidden');
+                listEl.innerHTML = '';
+                return;
+            }
+
+            container.classList.remove('hidden');
+            listEl.innerHTML = state.customItems.map(item => `
+                <div class="py-3 flex items-center justify-between gap-3">
+                    <div class="font-semibold text-sm text-steel-800">${escapeHtml(item.name)}</div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <span class="bg-orange-50 border border-orange-200 text-safety-700 px-2.5 py-1 rounded-lg font-mono font-bold text-sm">
+                            ${fmt(item.qty, Number.isInteger(item.qty) ? 0 : 1)} ${item.unit}
+                        </span>
+                        <button type="button" onclick="removeCustomMaterial(${item.id})" title="Usuń pozycję"
+                            class="w-8 h-8 rounded-lg text-steel-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Kopiowanie zestawienia do schowka (bezpieczne z fallbackiem execCommand)
+        function copySummaryToClipboard() {
+            const autoItems = getAutoMaterials();
+            let lines = [
+                '=== ZESTAWIENIE OGRODZENIA ===',
+                `Długość ogrodzenia: ${fmt(state.spans.totalLengthM, 2)} m`,
+                `Odstęp między poprzeczkami: ${fmt(state.spacing.gapCm, 2)} cm (${fmt(state.spacing.gapCm * 10, 1)} mm)`,
+                '',
+                'MATERIAŁY:'
+            ];
+
+            autoItems.forEach(item => {
+                lines.push(`- ${item.name}: ${fmt(item.qty, item.unit === 'mb' ? 2 : 0)} ${item.unit}`);
+            });
+
+            if (state.customItems.length > 0) {
+                lines.push('', 'DODATKOWE POZYCJE:');
+                state.customItems.forEach(item => {
+                    lines.push(`- ${item.name}: ${fmt(item.qty, Number.isInteger(item.qty) ? 0 : 1)} ${item.unit}`);
+                });
+            }
+
+            const textToCopy = lines.join('\n');
+            const helper = document.getElementById('clipboard-helper');
+            helper.value = textToCopy;
+            helper.classList.remove('sr-only');
+            helper.select();
+            helper.setSelectionRange(0, 99999);
+
+            try {
+                document.execCommand('copy');
+                showCopyConfirmation();
+            } catch (err) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(textToCopy).then(showCopyConfirmation);
+                }
+            } finally {
+                helper.classList.add('sr-only');
+            }
+        }
+
+        function showCopyConfirmation() {
+            const btn = document.getElementById('copy-summary-btn');
+            const btnText = document.getElementById('copy-btn-text');
+            const originalText = btnText.textContent;
+
+            btn.classList.replace('bg-steel-900', 'bg-emerald-600');
+            btn.classList.replace('hover:bg-steel-800', 'hover:bg-emerald-700');
+            btnText.textContent = 'Skopiowano!';
+
+            setTimeout(() => {
+                btn.classList.replace('bg-emerald-600', 'bg-steel-900');
+                btn.classList.replace('hover:bg-emerald-700', 'hover:bg-steel-800');
+                btnText.textContent = originalText;
+            }, 2000);
+        }
+
+        // =====================================================================
+        // RESET DO USTAWIEŃ POCZĄTKOWYCH
+        // =====================================================================
+        function resetAllDefaults() {
+            document.getElementById('sp-length').value = 200;
+            document.getElementById('sp-bar-width').value = 4;
+            document.getElementById('sp-count-input').value = 3;
+            document.getElementById('sp-count-slider').value = 3;
+            document.querySelector('input[name="sp-mode"][value="even-all"]').checked = true;
+
+            document.getElementById('au-length').value = 200;
+            document.getElementById('au-bar-width').value = 4;
+            document.getElementById('au-min-gap').value = '9.0';
+            document.getElementById('au-max-gap').value = '10.0';
+            document.querySelector('input[name="au-mode"][value="even-all"]').checked = true;
+
+            document.getElementById('fn-total-length').value = 25;
+            document.getElementById('fn-post-width').value = 8;
+            document.getElementById('fn-target-span').value = 250;
+            document.querySelector('input[name="fn-mode"][value="equal"]').checked = true;
+
+            state.customItems = [];
+            setOrientation('horizontal');
+            setAutoOrientation('horizontal');
+            calculateSpacing();
+            calculateAutoSpacing(true);
+            calculateSpans();
+            renderSummary();
+        }
+
+        // Inicjalizacja przy starcie
+        window.addEventListener('DOMContentLoaded', () => {
+            calculateSpacing();
+            calculateAutoSpacing(true);
+            calculateSpans();
+            renderSummary();
+        });
+    </script>
+</body>
+</html>

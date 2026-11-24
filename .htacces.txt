@@ -1,0 +1,1 @@
+RewriteEngine On RewriteCond %{HTTP_HOST} ^www\.rafmet\.pl$ [NC] RewriteRule ^(.*)$ http://rafmet.pl/$1 [R=301,L] 
